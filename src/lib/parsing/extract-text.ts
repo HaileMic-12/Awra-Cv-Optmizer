@@ -3,11 +3,9 @@ import mammoth from "mammoth";
 export async function extractTextFromFile(buffer: Buffer, mimeType: string): Promise<string> {
   try {
     if (mimeType === "application/pdf" || mimeType.includes("pdf")) {
-      // Direct robust text extraction from PDF buffer without external parser dependency bugs
       const textDecoder = new TextDecoder("utf-8", { fatal: false });
       const rawText = textDecoder.decode(buffer);
       
-      // Clean up PDF stream tokens and return readable text
       const cleanedText = rawText
         .replace(/obj[\s\S]*?endobj/g, "")
         .replace(/stream[\s\S]*?endstream/g, "")
