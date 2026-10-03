@@ -7,7 +7,6 @@ export async function extractTextFromFile(
   mimeType: string
 ): Promise<string> {
   try {
-    // PDF
     if (
       mimeType === "application/pdf" ||
       mimeType.toLowerCase().includes("pdf")
@@ -21,7 +20,6 @@ export async function extractTextFromFile(
       return text.trim();
     }
 
-    // Microsoft Word (.docx)
     if (
       mimeType ===
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
@@ -32,7 +30,6 @@ export async function extractTextFromFile(
       return result.value.trim();
     }
 
-    // Plain text / fallback
     return buffer.toString("utf-8").trim();
   } catch (error) {
     console.error("Extraction error:", error);
@@ -90,4 +87,3 @@ function extractPdfText(buffer: Buffer): Promise<string> {
     pdfParser.parseBuffer(buffer);
   });
 }
-
