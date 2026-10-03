@@ -1,9 +1,10 @@
-import pdf from "pdf-parse";
 import mammoth from "mammoth";
 
 export async function extractTextFromFile(buffer: Buffer, mimeType: string): Promise<string> {
   try {
     if (mimeType === "application/pdf" || mimeType.includes("pdf")) {
+      // Dynamic require avoids ESM export mismatch issues with pdf-parse in Next.js
+      const pdf = require("pdf-parse");
       const data = await pdf(buffer);
       return data.text;
     } 
@@ -16,7 +17,6 @@ export async function extractTextFromFile(buffer: Buffer, mimeType: string): Pro
       return result.value;
     }
 
-    // Fallback: try reading as plain text
     return buffer.toString("utf-8");
   } catch (error: any) {
     console.error("Extraction error:", error);
