@@ -1,3 +1,5 @@
-export async function POST() {
-  return Response.json({ status: "deprecated" });
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  return NextResponse.json({ success: true, message: "Parsed successfully" });
 }
