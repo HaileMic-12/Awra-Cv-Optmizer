@@ -1,36 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractTextFromFile } from "@/lib/parsing/extract-text";
-import { parseCVTextToJSON } from "@/lib/ai/cv-parser";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Convert Next.js File object to Node.js Buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    // 1. Extract raw text from the file
-    const rawText = await extractTextFromFile(buffer, file.type);
+    const extractedText = await extractTextFromFile(buffer, file.type);
 
-    // 2. Pass the extracted text to our Gemini AI tool
-    const structuredCV = await parseCVTextToJSON(rawText);
-
-    return NextResponse.json({
-      success: true,
-      message: "CV processed successfully",
-      data: structuredCV,
-    });
+    return NextResponse.json({ success: true, text: extractedText });
   } catch (error: any) {
-    console.error("[UPLOAD_CV_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "An unexpected error occurred during processing." },
-      { status: 500 }
-    );
+    console.error("Upload parse error:", error);
+    return NextResponse.json({ error: error.message || "Failed to process file" }, { status: 500 });
   }
 }
