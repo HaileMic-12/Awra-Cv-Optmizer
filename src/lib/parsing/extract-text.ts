@@ -3,9 +3,9 @@ import mammoth from "mammoth";
 export async function extractTextFromFile(buffer: Buffer, mimeType: string): Promise<string> {
   try {
     if (mimeType === "application/pdf" || mimeType.includes("pdf")) {
-      // Dynamic require avoids ESM export mismatch issues with pdf-parse in Next.js
-      const pdf = require("pdf-parse");
-      const data = await pdf(buffer);
+      // Fully inline dynamic load to bypass Turbopack's static import checks
+      const pdfParse = (await eval('import("pdf-parse")')).default;
+      const data = await pdfParse(buffer);
       return data.text;
     } 
     
