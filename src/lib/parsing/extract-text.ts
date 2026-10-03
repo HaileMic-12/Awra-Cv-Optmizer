@@ -1,4 +1,3 @@
-
 import mammoth from "mammoth";
 import PDFParser from "pdf2json";
 
@@ -26,7 +25,6 @@ export async function extractTextFromFile(
       mimeType.toLowerCase().includes("word")
     ) {
       const result = await mammoth.extractRawText({ buffer });
-
       return result.value.trim();
     }
 
@@ -64,7 +62,9 @@ function extractPdfText(buffer: Buffer): Promise<string> {
                   .map((run: any) => {
                     const encoded = run?.T;
 
-                    if (!encoded) return "";
+                    if (!encoded) {
+                      return "";
+                    }
 
                     try {
                       return decodeURIComponent(encoded);
