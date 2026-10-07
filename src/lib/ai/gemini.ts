@@ -1,9 +1,11 @@
-﻿import { GoogleGenerativeAI } from "@google/generative-ai";
+﻿import { GoogleGenAI } from "@google/genai";
 
 // Initialize the Gemini API client using the key from .env.local
-export const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+export const ai = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || "" 
+});
 
-// Upgraded to the Pro model for deep reasoning, CV analysis, and ATS scoring
+// Upgraded to the Pro/Flash model for deep reasoning, CV analysis, and ATS scoring
 export const DEFAULT_MODEL = "gemini-1.5-flash";
 
 // The master system prompt that defines the chatbot's personality and rules
