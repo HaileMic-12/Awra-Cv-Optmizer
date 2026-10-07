@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
+import { signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, getAdditionalUserInfo } from "firebase/auth";
+import { auth, db } from "@/lib/firebase/config";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,8 +26,26 @@ export default function SignUpPage() {
     setError("");
     
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      router.push("/chat");
+      // 1. Create the user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. Create their database profile with 0 credits
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        credits: 0,
+        createdAt: new Date(),
+      });
+
+      // 3. Set the cookie instantly for middleware
+      document.cookie = "awra_auth=true; path=/; max-age=" + 60 * 60 * 24 * 7;
+      
+      // 4. 🚨 FIX: Wipe any leftover documents from the previous user
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 5. Force a hard reload to hydrate AuthContext properly
+      window.location.href = "/chat";
     } catch (err: any) {
       console.error("Auth error:", err);
       if (err.code === 'auth/email-already-in-use') {
@@ -36,7 +53,6 @@ export default function SignUpPage() {
       } else {
         setError("Failed to create an account. Please try again.");
       }
-    } finally {
       setIsLoading(false);
     }
   };
@@ -48,12 +64,33 @@ export default function SignUpPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      await signInWithPopup(auth, provider);
-      router.push("/chat");
+      
+      // 1. Sign in with Google
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      // 2. Check if this is a BRAND NEW user (so we don't overwrite existing credits)
+      const additionalInfo = getAdditionalUserInfo(userCredential);
+      if (additionalInfo?.isNewUser) {
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          credits: 0,
+          createdAt: new Date(),
+        });
+      }
+
+      // 3. Set the cookie instantly for middleware
+      document.cookie = "awra_auth=true; path=/; max-age=" + 60 * 60 * 24 * 7;
+      
+      // 4. 🚨 FIX: Wipe any leftover documents from the previous user
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 5. Force a hard reload to hydrate AuthContext properly
+      window.location.href = "/chat";
     } catch (err: any) {
       console.error("Auth error:", err);
       setError("Failed to sign up with Google.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -61,9 +98,9 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-       <span className="text-4xl font-black tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700">
-  AWRA
-</span>
+        <span className="text-4xl font-black tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700">
+          AWRA
+        </span>
         <h2 className="mt-6 text-2xl font-bold text-gray-900">
           Create your account
         </h2>
@@ -138,7 +175,7 @@ export default function SignUpPage() {
                 onClick={handleGoogleSignUp}
                 disabled={isLoading}
                 type="button"
-                className={`w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all ${isLoading ? "opacity-50 cursor-wait" : ""}`}
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

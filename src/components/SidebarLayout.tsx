@@ -15,9 +15,18 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
   const handleLogout = async () => {
     try {
+      // 1. Sign out of Firebase Auth
       await signOut(auth);
+      
+      // 2. Delete the Next.js auth cookie
       document.cookie = "awra_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      router.push("/login");
+      
+      // 3. 🚨 FIX: Wipe the browser memory so no CVs or uploads leak to the next user
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 4. Force a hard reload to the login page
+      window.location.href = "/login";
     } catch (error) {
       console.error("Error logging out:", error);
     }

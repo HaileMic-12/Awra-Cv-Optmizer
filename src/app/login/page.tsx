@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,14 +19,18 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       
-      // 🚨 FIX: Set the cookie instantly so the middleware knows we are authenticated
+      // Set the cookie instantly for middleware
       document.cookie = "awra_auth=true; path=/; max-age=" + 60 * 60 * 24 * 7;
       
-      router.push("/chat");
+      // 🚨 FIX: Wipe any leftover documents from the previous user
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Force a hard reload to ensure AuthContext is fully hydrated
+      window.location.href = "/chat";
     } catch (err: any) {
       console.error("Auth error:", err);
       setError("Invalid email or password. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -42,14 +44,18 @@ export default function LoginPage() {
       provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
       
-      // 🚨 FIX: Set the cookie instantly so the middleware knows we are authenticated
+      // Set the cookie instantly for middleware
       document.cookie = "awra_auth=true; path=/; max-age=" + 60 * 60 * 24 * 7;
       
-      router.push("/chat");
+      // 🚨 FIX: Wipe any leftover documents from the previous user
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Force a hard reload to ensure AuthContext is fully hydrated
+      window.location.href = "/chat";
     } catch (err: any) {
       console.error("Auth error:", err);
       setError("Failed to sign in with Google.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -57,9 +63,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-      <span className="text-4xl font-black tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700">
-  AWRA
-</span>
+        <span className="text-4xl font-black tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700">
+          AWRA
+        </span>
         <h2 className="mt-6 text-2xl font-bold text-gray-900">
           Welcome back
         </h2>
@@ -123,7 +129,7 @@ export default function LoginPage() {
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
                 type="button"
-                className={`w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all ${isLoading ? "opacity-50 cursor-wait" : ""}`}
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
