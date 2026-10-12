@@ -136,7 +136,7 @@ export default function DashboardPage() {
               </svg>
               <h3 className="text-xl font-bold text-gray-900 mb-2">No resumes generated yet</h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                Head over to the AI Analyzer to upload your current CV and target a new job description.
+                Go to the CV Analyzer to upload your current CV and target a new job description.
               </p>
               <NextLink 
                 href="/chat"

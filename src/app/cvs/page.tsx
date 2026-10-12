@@ -68,7 +68,7 @@ export default function CVsPage() {
           <div className="p-12 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-center bg-white">
             <span className="text-4xl mb-3">📄</span>
             <h3 className="font-semibold text-gray-700">No CVs saved yet</h3>
-            <p className="text-sm text-gray-400 mt-1">Go to the AI Analyzer to generate your first optimized CV.</p>
+            <p className="text-sm text-gray-400 mt-1">Go to the CV Analyzer to generate your first optimized CV.</p>
           </div>
         ) : (
           <div className="space-y-6">
